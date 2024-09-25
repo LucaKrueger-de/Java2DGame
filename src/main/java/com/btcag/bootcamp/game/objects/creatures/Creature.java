@@ -40,32 +40,50 @@ public abstract class Creature extends GameObject {
 
     }
 
+    private void snapX() {
+        centerX = (int) centerX + 0.5;
+        movingDirectionX = 0;
+    }
+
+    private void snapY() {
+        centerY = (int) centerY + 0.5;
+        movingDirectionY = 0;
+    }
+
 
     private void tickwallCollisions() {
         GameMap map = game.getMap();
 
         if (movingDirectionX == 1 && !map.isFree((int) (centerX + 0.5), (int) centerY)
                 || movingDirectionX == -1 && !map.isFree((int) (centerX - 0.5), (int) centerY)) {
-            centerX = (int) centerX + 0.5;
-            movingDirectionX = 0;
+
+            snapX();
+
         } else if (movingDirectionY == 1 && !map.isFree((int) (centerX), (int) (centerY + 0.5))
                 || movingDirectionY == -1 && !map.isFree((int) (centerX), (int) (centerY - 0.5))) {
-            centerY = (int) centerY + 0.5;
-            movingDirectionY = 0;
+            snapY();
 
         }
     }
 
     private void tickTurn(boolean crossedCenterX, boolean crossedCenterY) {
-       boolean turnXToY = crossedCenterX && movingDirectionX != 0 && preferredDirectionY != 0 && game.getMap().isFree((int)centerX, (int)(centerY +preferredDirectionY));
-
+        boolean turnXToY = crossedCenterX && movingDirectionX != 0 && preferredDirectionY != 0 && game.getMap().isFree((int) centerX, (int) (centerY + preferredDirectionY));
+        boolean turnYtoX = crossedCenterY && movingDirectionY != 0 && preferredDirectionX != 0 && game.getMap().isFree((int) (centerX + preferredDirectionX), (int) centerY);
+        if (turnXToY) {
+            snapX();
+            movingDirectionY = preferredDirectionY;
+        } else if (turnYtoX) {
+            snapY();
+            movingDirectionX = preferredDirectionX;
+        }
     }
 
 
     public void tick() {
         tickMovingDirection();
-        double newX = centerX += movingDirectionX * speed;
-        double newY = centerY += movingDirectionY * speed;
+
+        double newX = centerX + movingDirectionX * speed;
+        double newY = centerY + movingDirectionY * speed;
 
         boolean crossedCenterX = Math.abs((centerX - 0.5) % 1.0 - (newX - 0.5) % 1.0) > 0.5;
         boolean crossedCenterY = Math.abs((centerY - 0.5) % 1.0 - (newY - 0.5) % 1.0) > 0.5;
